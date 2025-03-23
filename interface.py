@@ -241,7 +241,7 @@ def main():
             st.session_state.messages = [
                 {"role": "system", "content": "Chat cleared. What would you like to know about the image?"}
             ]
-            st.experimental_rerun()
+            st.rerun()
     
     # Main area
     main_container = st.container()
