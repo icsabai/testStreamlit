@@ -263,15 +263,15 @@ def main():
                 
                 if zoom_controls[0].button("Zoom In"):
                     st.session_state.zoom_level *= 1.2
-                    st.experimental_rerun()
+                    st.rerun()
                     
                 if zoom_controls[1].button("Reset Zoom"):
                     st.session_state.zoom_level = 1.0
-                    st.experimental_rerun()
+                    st.rerun()
                     
                 if zoom_controls[2].button("Zoom Out"):
                     st.session_state.zoom_level = max(0.5, st.session_state.zoom_level / 1.2)
-                    st.experimental_rerun()
+                    st.rerun()
                 
                 # Simple selection interface
                 st.write("To select an area, specify coordinates (relative to image dimensions):")
@@ -296,7 +296,7 @@ def main():
                         "role": "system", 
                         "content": f"Area selected ({x1},{y1}) to ({x2},{y2}). You can now ask questions about this specific region."
                     })
-                    st.experimental_rerun()
+                    st.rerun()
                 
                 # Chart display - in its own section
                 if st.session_state.chart_data is not None:
