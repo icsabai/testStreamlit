@@ -210,7 +210,7 @@ def chat_interface():
             st.session_state.messages.append({"role": "assistant", "content": response})
             
             # Rerun to update UI
-            st.experimental_rerun()
+            st.rerun()
 
 def main():
     st.title("AI Image Chat")
