@@ -172,68 +172,6 @@ def display_chart():
         # Display the chart
         st.pyplot(fig)
 
-def handle_image_selection():
-    """Process image selections made by the user"""
-    if st.session_state.image is not None:
-        # For simplicity, we're using Streamlit's built-in image control
-        # In a production app, you'd use custom JavaScript for more interactive selection
-        
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            # Display image with any annotations
-            display_image = st.session_state.annotated_image if st.session_state.annotated_image else st.session_state.image
-            st.image(display_image, use_column_width=True)
-            
-            # Basic zoom controls
-            zoom_col1, zoom_col2, zoom_col3 = st.columns([1, 1, 1])
-            with zoom_col1:
-                if st.button("Zoom In"):
-                    st.session_state.zoom_level *= 1.2
-            with zoom_col2:
-                if st.button("Reset Zoom"):
-                    st.session_state.zoom_level = 1.0
-            with zoom_col3:
-                if st.button("Zoom Out"):
-                    st.session_state.zoom_level = max(0.5, st.session_state.zoom_level / 1.2)
-            
-            # Simple selection interface
-            st.write("To select an area, specify coordinates (relative to image dimensions):")
-            col_x1, col_y1 = st.columns(2)
-            col_x2, col_y2 = st.columns(2)
-            
-            img_width, img_height = st.session_state.image.size
-            
-            with col_x1:
-                x1 = st.number_input("Left (x1)", 0, img_width, int(img_width * 0.25))
-            with col_y1:
-                y1 = st.number_input("Top (y1)", 0, img_height, int(img_height * 0.25))
-            with col_x2:
-                x2 = st.number_input("Right (x2)", 0, img_width, int(img_width * 0.75))
-            with col_y2:
-                y2 = st.number_input("Bottom (y2)", 0, img_height, int(img_height * 0.75))
-            
-            if st.button("Create Selection"):
-                selection = (x1, y1, x2, y2)
-                st.session_state.current_selection = selection
-                
-                # Add a system message about the selection
-                st.session_state.messages.append({
-                    "role": "system", 
-                    "content": f"Area selected ({x1},{y1}) to ({x2},{y2}). You can now ask questions about this specific region."
-                })
-        
-        with col2:
-            # Display chart if available
-            if st.session_state.chart_data is not None:
-                display_chart()
-            
-            # List of saved selections
-            if st.session_state.selections:
-                st.subheader("Saved Selections")
-                for i, sel in enumerate(st.session_state.selections):
-                    st.write(f"Selection {i+1}: ({sel[0]},{sel[1]}) to ({sel[2]},{sel[3]})")
-
 def chat_interface():
     """Display the chat interface and handle messages"""
     st.subheader("Chat with AI about the image")
@@ -305,19 +243,77 @@ def main():
             ]
             st.experimental_rerun()
     
-    # Main area - split into two columns
-    col1, col2 = st.columns([3, 2])
+    # Main area
+    main_container = st.container()
     
-    with col1:
-        # Image display and selection interface
-        if st.session_state.image is not None:
-            handle_image_selection()
-        else:
-            st.info("Please upload an image to begin.")
-    
-    with col2:
-        # Chat interface
-        chat_interface()
+    with main_container:
+        # Split into two columns for the main content
+        col1, col2 = st.columns([3, 2])
+        
+        with col1:
+            # Image viewer section
+            if st.session_state.image is not None:
+                # Display image with any annotations
+                display_image = st.session_state.annotated_image if st.session_state.annotated_image else st.session_state.image
+                st.image(display_image, use_column_width=True)
+                
+                # Zoom controls - in a separate container
+                zoom_container = st.container()
+                zoom_controls = zoom_container.columns(3)
+                
+                if zoom_controls[0].button("Zoom In"):
+                    st.session_state.zoom_level *= 1.2
+                    st.experimental_rerun()
+                    
+                if zoom_controls[1].button("Reset Zoom"):
+                    st.session_state.zoom_level = 1.0
+                    st.experimental_rerun()
+                    
+                if zoom_controls[2].button("Zoom Out"):
+                    st.session_state.zoom_level = max(0.5, st.session_state.zoom_level / 1.2)
+                    st.experimental_rerun()
+                
+                # Simple selection interface
+                st.write("To select an area, specify coordinates (relative to image dimensions):")
+                
+                # Create two separate column sets for coordinates
+                coord_row1 = st.columns(2)
+                coord_row2 = st.columns(2)
+                
+                img_width, img_height = st.session_state.image.size
+                
+                x1 = coord_row1[0].number_input("Left (x1)", 0, img_width, int(img_width * 0.25))
+                y1 = coord_row1[1].number_input("Top (y1)", 0, img_height, int(img_height * 0.25))
+                x2 = coord_row2[0].number_input("Right (x2)", 0, img_width, int(img_width * 0.75))
+                y2 = coord_row2[1].number_input("Bottom (y2)", 0, img_height, int(img_height * 0.75))
+                
+                if st.button("Create Selection"):
+                    selection = (x1, y1, x2, y2)
+                    st.session_state.current_selection = selection
+                    
+                    # Add a system message about the selection
+                    st.session_state.messages.append({
+                        "role": "system", 
+                        "content": f"Area selected ({x1},{y1}) to ({x2},{y2}). You can now ask questions about this specific region."
+                    })
+                    st.experimental_rerun()
+                
+                # Chart display - in its own section
+                if st.session_state.chart_data is not None:
+                    st.subheader("Analysis Results")
+                    display_chart()
+            else:
+                st.info("Please upload an image to begin.")
+        
+        with col2:
+            # Chat interface
+            chat_interface()
+            
+            # List of saved selections
+            if st.session_state.selections:
+                st.subheader("Saved Selections")
+                for i, sel in enumerate(st.session_state.selections):
+                    st.write(f"Selection {i+1}: ({sel[0]},{sel[1]}) to ({sel[2]},{sel[3]})")
 
 if __name__ == "__main__":
     main()
