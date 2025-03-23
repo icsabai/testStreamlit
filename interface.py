@@ -234,7 +234,7 @@ def main():
                 {"role": "system", "content": "Image uploaded! What would you like to know about it?"}
             ]
             
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+            st.image(image, caption="Uploaded Image", use_container_width=True)
         
         # Clear chat button
         if st.button("Clear Chat"):
@@ -255,7 +255,7 @@ def main():
             if st.session_state.image is not None:
                 # Display image with any annotations
                 display_image = st.session_state.annotated_image if st.session_state.annotated_image else st.session_state.image
-                st.image(display_image, use_column_width=True)
+                st.image(display_image, use_container_width=True)
                 
                 # Zoom controls - in a separate container
                 zoom_container = st.container()
